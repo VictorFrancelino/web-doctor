@@ -3,6 +3,7 @@
 import { cac } from "cac";
 import pc from "picocolors";
 import { scanDirectory } from "./src/scanner";
+import analyzeCss from "./src/analyzeCss";
 
 const cli = cac("web-doctor");
 
@@ -23,7 +24,12 @@ cli
 			}
 
 			console.log(pc.green(`Found ${files.length} files for analysis:`));
-			files.forEach(f => console.log(pc.dim(` - ${f}`)));
+			files.forEach(async f => {
+				if (f.endsWith(".css")) {
+					const cssAst = await analyzeCss(f);
+					console.log(cssAst)
+				}
+			});
 
 			console.log(pc.yellow("\nNext step: Analyzing health rules..."));
 		} catch (e) {
