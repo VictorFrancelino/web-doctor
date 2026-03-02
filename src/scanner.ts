@@ -1,23 +1,25 @@
-import { readdir, stat } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import { join } from "node:path";
+
+const TARGET_EXTENSIONS = ['.html', '.css', '.js'];
+const IGNORED_DIRS = new Set(['node_modules', '.git', 'dist', 'build']);
 
 export async function scanDirectory(dir: string) {
 	const filesFound: string[] = [];
-	const targetExtensions = [".html", ".css", ".js"];
 
 	async function recursiveScan(currentPath: string) {
-		const files = await readdir(currentPath);
+		const entries = await readdir(currentPath, { withFileTypes: true });
 
-		for (const file of files) {
-			const fullPath = join(currentPath, file);
+		for (const entry of entries) {
+			if (IGNORED_DIRS.has(entry.name)) continue;
 
-			if (file === "node_modules" || file === ".git") continue;
+			const fullPath = join(currentPath, entry.name);
 
-			const fileStat = await stat(fullPath);
-
-			if (fileStat.isDirectory()) await recursiveScan(fullPath);
-			else {
-				const isTarget = targetExtensions.some(ext => file.endsWith(ext));
+			if (entry.isDirectory()) await recursiveScan(fullPath);
+			else if (entry.isFile()) {
+				const isTarget = TARGET_EXTENSIONS.some(
+					ext => entry.name.endsWith(ext)
+				);
 				if (isTarget) filesFound.push(fullPath);
 			}
 		}
