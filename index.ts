@@ -89,7 +89,7 @@ cli
   });
 
 cli.help();
-cli.version("0.4.0");
+cli.version("0.4.1");
 cli.parse();
 
 function formatPoints(points: number) {
