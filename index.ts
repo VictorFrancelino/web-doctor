@@ -33,11 +33,7 @@ cli
 				return;
 			}
 
-			console.log(pc.green(`Found ${files.length} files for analysis.\n`));
-			console.log(pc.yellow("Analyzing health rules...\n"));
-
-			let totalPoints = 0;
-			let successfulFiles = 0;
+			console.log(pc.green(`Found ${files.length} files for analysis. Starting analyzing...\n`));
 
 			const analysisPromises = files.map(async (f) => {
 				try {
@@ -68,25 +64,14 @@ cli
 
 			for (const result of results) {
 				if (result) {
-					totalPoints += result.points;
-					successfulFiles++;
-					console.log(
-						`${pc.cyan(`${result.icon} ${result.file}`)} -> ${formatPoints(result.points)}`
-					);
+					console.log(pc.cyan(`${result.icon} ${result.file}`));
 
 					if (result.logs && result.logs.length > 0) {
 						for (let log of result.logs) {
-							console.log(pc.red(`${log.title}: ${log.msg}`));
+							console.log(pc.red(`- ${log.title}: ${log.msg}\n`));
 						}
 					}
 				}
-			}
-
-			if (successfulFiles > 0) {
-				const finalAverage = totalPoints / successfulFiles;
-				console.log(pc.bold(
-					`\n📊 Overall Health Score: ${formatPoints(Math.round(finalAverage))}`
-				));
 			}
 		} catch (e) {
 			console.error(pc.red("Error reading directory:"), e);
@@ -96,9 +81,3 @@ cli
 cli.help();
 cli.version("0.5.0");
 cli.parse();
-
-function formatPoints(points: number) {
-  if (points >= 9) return pc.green(`${points}/10 (Healthy)`);
-  if (points >= 5) return pc.yellow(`${points}/10 (Attention)`);
-  return pc.red(`${points}/10 (Critical)`);
-}
