@@ -1,7 +1,8 @@
 export type DomItem = {
 	tag: string;
-	content?: string;
   attributes: AttributeItem[];
+	content?: string;
+	children?: DomItem[];
 };
 
 export type AttributeItem = {

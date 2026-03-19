@@ -15,8 +15,14 @@ async function parseHtmlToDom(path: string): Promise<DomItem[]> {
 			const newItem: DomItem = {
 				tag,
 				attributes: formattedAttributes,
-				content: ''
+				content: '',
+				children: []
 			};
+
+			if (stack.length > 0) {
+				const parent = stack[stack.length - 1];
+				parent?.children?.push(newItem);
+			}
 
 			tagItems.push(newItem);
 			stack.push(newItem);

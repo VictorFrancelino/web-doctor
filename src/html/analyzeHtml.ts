@@ -6,6 +6,7 @@ import {
 	inlineCss,
 	tabIndexRule,
 	htmlRules,
+	headRules,
 	imgRules,
 	labelRules,
 	inputRules,
@@ -25,6 +26,10 @@ function analyzeHtml(dom: DomItem[]): DiagnosticLog[] {
 		switch (currentTag.tag) {
 			case 'html': {
 				htmlRules(currentTag, logs);
+				break;
+			}
+			case 'head': {
+				headRules(currentTag, logs);
 				break;
 			}
 			case 'img': {
