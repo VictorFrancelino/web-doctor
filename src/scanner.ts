@@ -6,7 +6,6 @@ export async function scanDirectory(dir: string): Promise<string[]> {
 
 	for await (const file of glob.scan({
 		cwd: dir,
-		absolute: true,
 		followSymlinks: false,
 		onlyFiles: true,
 	})) {

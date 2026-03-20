@@ -18,8 +18,10 @@
   },
   "dependencies": {
     "cac": "^6.7.14",
+    "figlet": "^1.11.0",
     "htmlparser2": "^10.1.0",
     "meriyah": "^7.1.0",
+    "ora": "^9.3.0",
     "picocolors": "^1.1.1",
     "postcss": "^8.5.6"
   }
