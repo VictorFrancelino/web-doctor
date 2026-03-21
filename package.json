@@ -3,13 +3,31 @@
   "module": "index.ts",
   "type": "module",
   "version": "0.5.0",
-  "private": true,
   "scripts": {
     "dev": "bun run ./index.ts"
   },
   "bin": {
     "web-doctor": "./index.ts"
   },
+  "description": "A CLI that analyzes HTML, CSS, and JavaScript codebases for best practices, performance, and accessibility.",
+  "author": "Victor Francelino",
+  "contributors": [
+  	{
+ 			"name": "Victor Francelino",
+   		"url": "https://github.com/VictorFrancelino"
+   	},
+  	{
+ 			"name": "George Lucas",
+   		"url": "https://github.com/GeorgeLucas1"
+   	}
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/VictorFrancelino/web-doctor-cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VictorFrancelino/web-doctor-cli.git"
+  },
+  "keywords": ["cli", "html", "css", "javascript", "linter", "accessibility", "wcag", "performance"],
   "devDependencies": {
     "@types/bun": "latest"
   },
