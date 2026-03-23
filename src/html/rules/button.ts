@@ -1,10 +1,15 @@
 import type { DiagnosticLog } from "../../logs";
 import type { DomItem } from "../types";
 import { addLog, DiagnosticLevel } from "../../logs";
-import { getAttr } from "../utils";
+import {
+	getAttributeValue,
+	hasNonEmptyAttribute,
+	hasTextContent,
+	hasChildTag
+} from "../utils";
 
 function buttonRules(currentTag: DomItem, logs: DiagnosticLog[]) {
-	const typeAttr = getAttr(currentTag, 'type');
+	const typeAttr = getAttributeValue(currentTag, 'type');
 
 	if (!typeAttr) {
 		addLog(logs, {
@@ -14,6 +19,7 @@ function buttonRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		});
 	} else {
 		const validTypes = ['button', 'submit', 'reset'];
+
 		if (!validTypes.includes(typeAttr.toLowerCase())) {
 			addLog(logs, {
         type: DiagnosticLevel.ERROR,
@@ -23,11 +29,12 @@ function buttonRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		}
 	}
 
-	const hasTextContent = currentTag.content && currentTag.content.trim() !== '';
-	const hasAriaLabel = getAttr(currentTag, 'aria-label') !== '';
-	if (!hasTextContent && !hasAriaLabel) {
+	const hasText = hasTextContent(currentTag);
+	const hasAriaLabel = hasNonEmptyAttribute(currentTag, 'aria-label');
+
+	if (!hasText && !hasAriaLabel) {
 		const hasAltInside = currentTag.children?.some(
-			child => child.tag === 'img' && getAttr(child, 'alt')?.trim() !== ''
+			child => child.tag === 'img' && hasNonEmptyAttribute(child, 'alt')
 		);
 
 		if (!hasAltInside) {
@@ -39,15 +46,12 @@ function buttonRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		}
 	}
 
-	if (currentTag.children && currentTag.children.length > 0) {
-		const hasNestedLink = currentTag.children.some(child => child.tag === 'a');
-		if (hasNestedLink) {
-      addLog(logs, {
-        type: DiagnosticLevel.ERROR,
-        title: 'Link Inside Button',
-        msg: 'Never nest an <a> tag inside a <button>. It violates HTML specs and breaks screen readers.'
-      });
-    }
+	if (hasChildTag(currentTag, 'a')) {
+    addLog(logs, {
+      type: DiagnosticLevel.ERROR,
+      title: 'Link Inside Button',
+      msg: 'Never nest an <a> tag inside a <button>. It violates HTML specs and breaks screen readers.'
+    });
 	}
 }
 

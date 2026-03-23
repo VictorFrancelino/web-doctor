@@ -1,11 +1,10 @@
 import type { DiagnosticLog } from "../../logs";
 import type { DomItem } from "../types";
 import { addLog, DiagnosticLevel } from "../../logs";
-import { hasValidAttr } from "../utils";
+import { hasNonEmptyAttribute } from "../utils";
 
 function inlineCss(currentTag: DomItem, logs: DiagnosticLog[]) {
-	const hasInlineStyle = hasValidAttr(currentTag, 'style');
-	if (hasInlineStyle) {
+	if (hasNonEmptyAttribute(currentTag, 'style')) {
 		addLog(logs, {
 			type: DiagnosticLevel.WARNING,
 			title: 'Inline CSS',

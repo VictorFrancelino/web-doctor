@@ -1,12 +1,18 @@
 import type { DiagnosticLog } from "../../logs";
 import type { DomItem } from "../types";
 import { addLog, DiagnosticLevel } from "../../logs";
-import { getAttr } from "../utils";
+import {
+	getAttributeValue,
+	hasAttribute,
+	hasNonEmptyAttribute
+} from "../utils";
 
 function inputRules(currentTag: DomItem, logs: DiagnosticLog[]) {
-	const hasId = getAttr(currentTag, 'id') !== '';
-	const hasName = getAttr(currentTag, 'name') !== '';
-	const typeAttr = getAttr(currentTag, 'type');
+	const typeAttr = getAttributeValue(currentTag, 'type');
+	const typeLower = typeAttr?.toLowerCase();
+
+	const hasId = hasNonEmptyAttribute(currentTag, 'id');
+	const hasName = hasNonEmptyAttribute(currentTag, 'name');
 
 	if (!hasId && !hasName) {
 		addLog(logs, {
@@ -16,18 +22,15 @@ function inputRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		});
 	}
 
-	if (typeAttr === null || typeAttr.trim() === '') {
+	if (!typeAttr) {
 		addLog(logs, {
       type: DiagnosticLevel.INFO,
       title: 'Missing <input> Type',
       msg: 'Always specify a \'type\' attribute (e.g., type="text"). Relying on browser defaults can lead to bugs.'
     });
 	} else {
-		const typeLower = typeAttr.toLowerCase();
-
 		if (typeLower === 'radio' || typeLower === 'checkbox') {
-      const hasValue = getAttr(currentTag, 'value') !== null;
-      if (!hasValue) {
+      if (!hasAttribute(currentTag, 'value')) {
         addLog(logs, {
           type: DiagnosticLevel.ERROR,
           title: `Missing Value on ${typeAttr}`,
@@ -37,8 +40,7 @@ function inputRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		}
 
 		if (typeLower === 'image') {
-      const hasAlt = getAttr(currentTag, 'alt') !== null;
-      if (!hasAlt) {
+      if (!hasAttribute(currentTag, 'alt')) {
         addLog(logs, {
           type: DiagnosticLevel.ERROR,
           title: 'Missing Alt on Image Input',

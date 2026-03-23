@@ -1,6 +1,11 @@
 import { addLog, DiagnosticLevel, type DiagnosticLog } from "../../logs";
 import type { DomItem } from "../types";
-import { getAttr, hasValidAttr } from "../utils";
+import {
+	getAttributeValue,
+	hasAttribute,
+	hasNonEmptyAttribute,
+	hasTextContent
+} from "../utils";
 
 const tagsShouldInsideHead = new Set([
 	'title',
@@ -29,7 +34,7 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
       });
 		}
 
-		if (child.tag === 'title' && child.content !== '') {
+		if (child.tag === 'title' && hasTextContent(child)) {
 			if (hasTitleTag) {
 				addLog(logs, {
 					type: DiagnosticLevel.ERROR,
@@ -38,7 +43,7 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
         });
 			}
 
-			if (child.content && child.content.length > 70) {
+			if (child.content!.length > 70) {
 				addLog(logs, {
 					type: DiagnosticLevel.WARNING,
 			    title: '<title> Too Long',
@@ -51,10 +56,12 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		}
 
 		if (child.tag === 'meta') {
-			const hasNameAttr = getAttr(child, 'name') === 'description';
-			const hasContentAttr = hasValidAttr(child, 'content');
-			if (hasNameAttr && hasContentAttr) {
-				const contentAttrValue = getAttr(child, 'content');
+			const hasNameDescription = getAttributeValue(child, 'name') === 'description';
+			const hasContent = hasNonEmptyAttribute(child, 'content');
+
+			if (hasNameDescription && hasContent) {
+				const contentAttrValue = getAttributeValue(child, 'content');
+
 				if (
 					contentAttrValue &&
 					(contentAttrValue.length < 50 || contentAttrValue?.length > 160)
@@ -70,21 +77,23 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 				continue;
 			}
 
-			const charset = getAttr(child, 'charset');
-			const hasCharsetAttr = charset && charset.toLowerCase() === 'utf-8';
-			if (hasCharsetAttr) {
+			const charset = getAttributeValue(child, 'charset');
+
+			if (charset && charset.toLocaleLowerCase() === 'utf-8') {
 				hasMetaCharset = true;
 				continue;
 			}
 
-			const hasViewportAttr = getAttr(child, 'name') === 'viewport';
-			const hasViewportContentAttr = hasValidAttr(child, 'content');
-			if (hasViewportAttr && hasViewportContentAttr) {
-				const viewportContent = getAttr(child, 'content');
+			const isViewport = getAttributeValue(child, 'name') === 'viewport';
+			const hasViewportContent = hasNonEmptyAttribute(child, 'content');
+
+			if (isViewport && hasViewportContent) {
+				const viewportValue = getAttributeValue(child, 'content');
+
 				if (
-					viewportContent?.includes('user-scalable=no') ||
-					viewportContent?.includes('user-scalable=0') ||
-					viewportContent?.includes('maximum-scale=1')
+					viewportValue?.includes('user-scalable=no') ||
+					viewportValue?.includes('user-scalable=0') ||
+					viewportValue?.includes('maximum-scale=1')
 				) {
 					addLog(logs, {
 						type: DiagnosticLevel.ERROR,
@@ -99,17 +108,16 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		}
 
 		if (child.tag === 'script') {
-			const hasSrcAttr = hasValidAttr(child, 'src');
-			if (hasSrcAttr) {
-				const hasDefer = getAttr(child, 'defer') !== null;
-				const hasAsync = getAttr(child, 'async') !== null;
-        const isModule = getAttr(child, 'type') === 'module';
+			if (hasNonEmptyAttribute(child, 'src')) {
+				const hasDefer = hasAttribute(child, 'defer');
+				const hasAsync = hasAttribute(child, 'async');
+        const isModule = getAttributeValue(child, 'type') === 'module';
 
 				if (!hasDefer && !hasAsync && !isModule) {
 					addLog(logs, {
 						type: DiagnosticLevel.WARNING,
 				    title: 'Render-Blocking Script',
-				    msg: `The script '${getAttr(child, 'src')}' in the <head> lacks a 'defer' or 'async' attribute. This halts HTML parsing and delays the first paint.`
+				    msg: `The script '${getAttributeValue(child, 'src')}' in the <head> lacks a 'defer' or 'async' attribute. This halts HTML parsing and delays the first paint.`
 					});
 				}
 			}

@@ -1,33 +1,39 @@
 import type { DomItem } from "../types";
 import { addLog, DiagnosticLevel, type DiagnosticLog } from "../../logs";
-import { getAttr, hasValidAttr } from "../utils";
+import { getAttributeValue, hasNonEmptyAttribute } from "../utils";
 
 function imgRules(currentTag: DomItem, logs: DiagnosticLog[]) {
-	const srcAttr = getAttr(currentTag, 'src');
-	const altAttr = getAttr(currentTag, 'alt');
+	const srcAttr = getAttributeValue(currentTag, 'src');
+	const altAttr = getAttributeValue(currentTag, 'alt');
 
-	const hasLoadingLazy = getAttr(currentTag, 'loading') === 'lazy';
-	const hasFetchpriority = getAttr(currentTag, 'fetchpriority') === 'high';
-	const hasDecodingAsync = getAttr(currentTag, 'decoding') === 'async';
-	const hasSizes = hasValidAttr(currentTag, 'sizes');
-	const hasSrcset = hasValidAttr(currentTag, 'srcset');
-	const hasWidth = hasValidAttr(currentTag, 'width');
-	const hasHeight = hasValidAttr(currentTag, 'height');
+	const hasLoadingLazy = getAttributeValue(currentTag, 'loading') === 'lazy';
+	const hasFetchpriority = getAttributeValue(
+		currentTag,
+		'fetchpriority'
+	) === 'high';
+	const hasDecodingAsync = getAttributeValue(
+		currentTag,
+		'decoding'
+	) === 'async';
 
-	const isExternal = srcAttr ?
-		srcAttr.startsWith('http://') || srcAttr.startsWith('https://')
+	const hasSizes = hasNonEmptyAttribute(currentTag, 'sizes');
+	const hasSrcset = hasNonEmptyAttribute(currentTag, 'srcset');
+	const hasWidth = hasNonEmptyAttribute(currentTag, 'width');
+	const hasHeight = hasNonEmptyAttribute(currentTag, 'height');
+
+	const isExternal = srcAttr
+		? srcAttr.startsWith('http://') || srcAttr.startsWith('https://')
 		: null;
 
 	if (srcAttr && !isExternal) {
-		if (
-			srcAttr.endsWith('.jpg') ||
-			srcAttr.endsWith('.jpeg') ||
-			srcAttr.endsWith('.png')
-		) {
+		const extension = srcAttr.split('.').pop()?.toLowerCase();
+		const isLegacy = ['jpg', 'jpeg', 'png'].includes(extension || '');
+
+		if (isLegacy) {
 			addLog(logs, {
 				type: DiagnosticLevel.INFO,
         title: 'Legacy Image Format',
-        msg: `Avoid using '${srcAttr.split('.').pop()}' formats. Prefer modern formats like WebP or AVIF, which provide superior compression and drastically reduce page load times.`
+        msg: `Avoid using '${extension}' formats. Prefer modern formats like WebP or AVIF for better compression.`
       });
 		}
 
@@ -35,7 +41,7 @@ function imgRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 			addLog(logs, {
 				type: DiagnosticLevel.WARNING,
         title: 'Missing \'sizes\' Attribute',
-        msg: 'When using \'srcset\', you must include the \'sizes\' attribute. Without it, the browser assumes the image is 100vw, which ruins responsive image optimization.'
+        msg: 'When using \'srcset\', you must include the \'sizes\' attribute for responsive optimization.'
       });
 		}
 
@@ -43,7 +49,7 @@ function imgRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 			addLog(logs, {
 				type: DiagnosticLevel.INFO,
         title: 'Missing \'srcset\' Attribute',
-        msg: 'Provide a \'srcset\' attribute for raster images. This allows the browser to download appropriately sized images for mobile devices, saving bandwidth and improving performance.'
+        msg: 'Provide a \'srcset\' attribute for raster images to serve appropriate sizes for mobile devices.'
       });
 		}
 
@@ -56,7 +62,7 @@ function imgRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 				addLog(logs, {
 					type: DiagnosticLevel.WARNING,
           title: 'Heavy Image Detected',
-          msg: `The image '${srcAttr}' is ${imgSizeInKb.toFixed(1)}KB. Keep web images under ${maxKb}KB. Consider using WebP or AVIF.`
+          msg: `The image '${srcAttr}' is ${imgSizeInKb.toFixed(1)}KB. Keep web images under ${maxKb}KB.`
         });
 			}
 		} else {
@@ -96,7 +102,7 @@ function imgRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		addLog(logs, {
 			type: DiagnosticLevel.WARNING,
 			title: 'Missing Image Dimensions (CLS)',
-			msg: 'Always set explicit \'width\' and \'height\' attributes on <img> tags to prevent Cumulative Layout Shift.'
+			msg: 'Set explicit width and height to prevent Cumulative Layout Shift.'
 		});
 	}
 
@@ -106,24 +112,18 @@ function imgRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 			title: 'Missing \'alt\' attribute',
 			msg: 'Images must have an \'alt\' attribute. Use alt="" for decorative images.'
 		});
-	} else {
-		const altLength = altAttr.length;
-		if (altLength > 125) {
+	} else if (altAttr !== '') {
+		if (altAttr.length > 125) {
 			addLog(logs, {
 				type: DiagnosticLevel.WARNING,
         title: 'Alt Text Too Long',
-        msg: `The alt text is ${altLength} characters. Keep it under 125 characters or use 'aria-describedby'.`
+        msg: `The alt text is ${altAttr.length} characters. Keep it under 125 characters or use 'aria-describedby'.`
       });
 		}
 
-		const altContent = altAttr.toLowerCase();
-		if (
-			altContent.endsWith('.png') ||
-			altContent.endsWith('.jpg') ||
-			altContent.endsWith('.jpeg') ||
-			altContent.endsWith('.webp') ||
-			altContent.endsWith('.svg')
-		) {
+		const isFileName = /\.(png|jpg|jpeg|webp|svg)$/i.test(altAttr);
+
+		if (isFileName) {
 			addLog(logs, {
 				type: DiagnosticLevel.WARNING,
         title: 'Invalid Alt Text (File Extension)',

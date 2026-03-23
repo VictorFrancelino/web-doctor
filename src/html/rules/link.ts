@@ -1,7 +1,11 @@
 import type { DiagnosticLog } from "../../logs";
 import type { DomItem } from "../types";
 import { addLog, DiagnosticLevel } from "../../logs";
-import { getAttr, hasValidAttr } from "../utils";
+import {
+	getAttributeValue,
+	hasNonEmptyAttribute,
+	hasTextContent
+} from "../utils";
 
 const GENERIC_LINK_TEXTS = new Set([
 	'clique aqui',
@@ -17,19 +21,18 @@ const GENERIC_LINK_TEXTS = new Set([
 function linkRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 	let hasAltInside = false;
 
-	const hrefContent = getAttr(currentTag, 'href');
-	const isTargetBlank = getAttr(currentTag, 'target') === '_blank';
-	const relAttr = getAttr(currentTag, 'rel') || '';
+	const hrefContent = getAttributeValue(currentTag, 'href');
+	const isTargetBlank = getAttributeValue(currentTag, 'target') === '_blank';
+	const relAttr = getAttributeValue(currentTag, 'rel') || '';
 	const hasSecureRel =
 		relAttr.includes('noopener') ||
 		relAttr.includes('noreferrer');
-	const hasAriaLabel = hasValidAttr(currentTag, 'aria-label');
+	const hasAriaLabel = hasNonEmptyAttribute(currentTag, 'aria-label');
 
 	if (currentTag.children && currentTag.children.length > 0) {
 		for (const child of currentTag.children) {
 			if (child.tag === 'img') {
-				const alt = getAttr(child, 'alt');
-				if (alt && alt.trim() !== '') hasAltInside = true;
+				if (hasNonEmptyAttribute(child, 'alt')) hasAltInside = true;
 				else {
 					addLog(logs, {
 						type: DiagnosticLevel.ERROR,
@@ -65,11 +68,11 @@ function linkRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 		});
 	}
 
+	const hasText = hasTextContent(currentTag);
 	const linkText = (currentTag.content || '').toLowerCase().trim();
 	const isGenericText = GENERIC_LINK_TEXTS.has(linkText);
-	const hasNoText = linkText === '';
 
-	if ((isGenericText || hasNoText) && !hasAriaLabel && !hasAltInside) {
+	if ((isGenericText || !hasText) && !hasAriaLabel && !hasAltInside) {
 		addLog(logs, {
 			type: DiagnosticLevel.WARNING,
 			title: 'Poor Link Text',
