@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import { version } from "./package.json";
 import { cac } from "cac";
 import figlet from "figlet";
 import ora from "ora";
@@ -106,5 +107,5 @@ cli
 	});
 
 cli.help();
-cli.version("0.6.0");
+cli.version(version);
 cli.parse();
