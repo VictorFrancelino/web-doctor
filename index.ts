@@ -88,8 +88,20 @@ cli
 					totalIssues += result.logs.length;
 
 					for (const log of result.logs) {
-						console.log(pc.red(`   ✖ ${log.title}`));
-						console.log(pc.dim(`     ${log.msg}\n`));
+						switch (log.type) {
+							case 'error':
+								console.log(pc.red(`   ✖ ${log.title}`));
+								console.log(pc.dim(`     ${log.msg}\n`));
+								break;
+							case 'warning':
+								console.log(pc.yellow(`   ⚠ ${log.title}`));
+								console.log(pc.dim(`     ${log.msg}\n`));
+								break;
+							case 'info':
+								console.log(pc.blue(`   ⓘ ${log.title}`));
+								console.log(pc.dim(`     ${log.msg}\n`));
+								break;
+						}
 					}
 				} else console.log(pc.green(`   ✔ No issues found\n`));
 			}

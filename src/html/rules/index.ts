@@ -4,7 +4,7 @@ export { default as htmlRules } from "./html";
 export { default as headRules } from "./head";
 export { default as linkRules } from "./link";
 export { default as buttonRules } from "./button";
-export { default as inputRules } from "./inputs";
+export { default as inputRules } from "./input";
 export { default as badTags } from "./badTags";
 export { default as inlineJs } from "./inlineJs";
 export { default as inlineCss } from "./inlineCss";

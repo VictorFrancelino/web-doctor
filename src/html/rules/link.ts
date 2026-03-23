@@ -1,6 +1,6 @@
 import type { DiagnosticLog } from "../../logs";
 import type { DomItem } from "../types";
-import { addErrorLog } from "../../logs";
+import { addLog, DiagnosticLevel } from "../../logs";
 import { getAttr, hasValidAttr } from "../utils";
 
 const GENERIC_LINK_TEXTS = new Set([
@@ -31,7 +31,8 @@ function linkRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 				const alt = getAttr(child, 'alt');
 				if (alt && alt.trim() !== '') hasAltInside = true;
 				else {
-					addErrorLog(logs, {
+					addLog(logs, {
+						type: DiagnosticLevel.ERROR,
 				    title: 'Empty link containing an image',
 				    msg: 'This link has no text content and the internal image lacks an "alt" attribute. Screen readers will not be able to describe the link destination.'
 					});
@@ -42,20 +43,23 @@ function linkRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 
 	if (hrefContent !== null) {
 		if (hrefContent === '#' ||hrefContent.startsWith('javascript:')) {
-			addErrorLog(logs, {
+			addLog(logs, {
+				type: DiagnosticLevel.WARNING,
 		    title: 'Incorrect Link Usage',
 		    msg: 'Links with "#" or "javascript:" should likely be <button> elements. Links are for navigation, buttons for actions.'
 			});
 		}
 	} else {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.ERROR,
 			title: 'Missing \'href\' attribute',
 			msg: 'Links (<a>) must have an \'href\'. For elements that only trigger JS, use a <button>.'
 		});
 	}
 
 	if (isTargetBlank && !hasSecureRel) {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.ERROR,
 			title: 'Unsafe target="_blank"',
 			msg: 'Add rel="noopener noreferrer" to prevent security vulnerabilities.'
 		});
@@ -66,7 +70,8 @@ function linkRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 	const hasNoText = linkText === '';
 
 	if ((isGenericText || hasNoText) && !hasAriaLabel && !hasAltInside) {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.WARNING,
 			title: 'Poor Link Text',
 			msg: 'Avoid generic text like \'click here\' or empty links. Use descriptive text, an \'aria-label\', or an image with \'alt\'.'
 		});

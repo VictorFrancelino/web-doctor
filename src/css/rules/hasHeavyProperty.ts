@@ -1,6 +1,6 @@
 import type { DiagnosticLog } from "../../logs";
 import type { AstItem } from "../types";
-import { addErrorLog } from "../../logs";
+import { addLog, DiagnosticLevel } from "../../logs";
 
 function hasHeavyProperty(item: AstItem, logs: DiagnosticLog[]) {
 	if (item.selector === "*") {
@@ -8,7 +8,8 @@ function hasHeavyProperty(item: AstItem, logs: DiagnosticLog[]) {
 			declaration => isNotLayoutProperty(declaration.property)
 		);
 		if (hasHeavyProperty) {
-			addErrorLog(logs, {
+			addLog(logs, {
+				type: DiagnosticLevel.WARNING,
 				title: 'Heavy Universal Selector',
 				msg: `Avoid expensive properties on the '*' selector. Limit it to layout resets (margin, padding, box-sizing).`
 			});

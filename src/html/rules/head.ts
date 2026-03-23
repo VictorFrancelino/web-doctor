@@ -1,4 +1,4 @@
-import { addErrorLog, type DiagnosticLog } from "../../logs";
+import { addLog, DiagnosticLevel, type DiagnosticLog } from "../../logs";
 import type { DomItem } from "../types";
 import { getAttr, hasValidAttr } from "../utils";
 
@@ -22,7 +22,8 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 
 	for (const child of currentTag.children) {
 		if (!tagsShouldInsideHead.has(child.tag)) {
-			addErrorLog(logs, {
+			addLog(logs, {
+				type: DiagnosticLevel.ERROR,
         title: 'Invalid Tag in <head>',
         msg: `The tag <${child.tag}> is not allowed inside the <head>. Move it to the <body>.`
       });
@@ -30,14 +31,16 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 
 		if (child.tag === 'title' && child.content !== '') {
 			if (hasTitleTag) {
-				addErrorLog(logs, {
+				addLog(logs, {
+					type: DiagnosticLevel.ERROR,
           title: 'Multiple <title> Tags',
           msg: 'Found more than one <title> tag in the <head>. Search engines only expect one. Remove the duplicates.'
         });
 			}
 
 			if (child.content && child.content.length > 70) {
-				addErrorLog(logs, {
+				addLog(logs, {
+					type: DiagnosticLevel.WARNING,
 			    title: '<title> Too Long',
 			    msg: 'Your title exceeds 70 characters. Search engines will truncate it. Keep it concise for better CTR.'
 				});
@@ -56,7 +59,8 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 					contentAttrValue &&
 					(contentAttrValue.length < 50 || contentAttrValue?.length > 160)
 				) {
-					addErrorLog(logs, {
+					addLog(logs, {
+						type: DiagnosticLevel.WARNING,
 				    title: 'Suboptimal Meta Description Length',
 				    msg: 'Meta description should be between 50 and 160 characters. Current length is suboptimal for search engine snippets.'
 					});
@@ -82,7 +86,8 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 					viewportContent?.includes('user-scalable=0') ||
 					viewportContent?.includes('maximum-scale=1')
 				) {
-					addErrorLog(logs, {
+					addLog(logs, {
+						type: DiagnosticLevel.ERROR,
 				    title: 'Accessibility Violation (Zoom Blocked)',
 				    msg: 'The viewport meta tag restricts zooming (user-scalable=no or maximum-scale=1). This prevents visually impaired users from enlarging text. Remove these restrictions.'
 					});
@@ -101,7 +106,8 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
         const isModule = getAttr(child, 'type') === 'module';
 
 				if (!hasDefer && !hasAsync && !isModule) {
-					addErrorLog(logs, {
+					addLog(logs, {
+						type: DiagnosticLevel.WARNING,
 				    title: 'Render-Blocking Script',
 				    msg: `The script '${getAttr(child, 'src')}' in the <head> lacks a 'defer' or 'async' attribute. This halts HTML parsing and delays the first paint.`
 					});
@@ -111,28 +117,32 @@ function headRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 	}
 
 	if (!hasTitleTag) {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.ERROR,
       title: 'Missing <title> tag',
       msg: 'The <head> must contain a <title> tag with text content. This is critical for SEO and browser tabs.'
     });
 	}
 
 	if (!hasMetaDescriptionTag) {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.WARNING,
       title: 'Missing Meta Description',
       msg: 'Add a <meta name="description" content="..."> tag. Search engines use this to display your site\'s summary in search results.'
     });
 	}
 
 	if (!hasMetaCharset) {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.ERROR,
       title: 'Missing Charset',
       msg: 'Add <meta charset="UTF-8"> to the <head>. This prevents garbled text and security vulnerabilities.'
     });
 	}
 
 	if (!hasMetaViewport) {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.ERROR,
       title: 'Missing Viewport Meta Tag',
       msg: 'Add <meta name="viewport" content="width=device-width, initial-scale=1"> to ensure your site is responsive on mobile devices.'
     });

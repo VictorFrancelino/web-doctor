@@ -1,11 +1,12 @@
 import type { DomItem } from "../types";
-import { addErrorLog, type DiagnosticLog } from "../../logs";
+import { addLog, DiagnosticLevel, type DiagnosticLog } from "../../logs";
 import { getAttr } from "../utils";
 
 function labelRules(currentTag: DomItem, logs: DiagnosticLog[]) {
 	const hasValidFor = getAttr(currentTag, 'for') !== '';
 	if (!hasValidFor) {
-		addErrorLog(logs, {
+		addLog(logs, {
+			type: DiagnosticLevel.ERROR,
 			title: 'Unlinked <label>',
 			msg: 'Labels must have a \'for\' attribute matching an input\'s \'id\'.'
 		});

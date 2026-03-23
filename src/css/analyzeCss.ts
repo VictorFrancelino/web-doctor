@@ -1,5 +1,5 @@
 import type { AstItem } from "./types";
-import { type DiagnosticLog, addErrorLog } from "../logs";
+import { DiagnosticLevel, type DiagnosticLog, addLog } from "../logs";
 import hasNoProperties from "./rules/hasNoProperties";
 import hasIdSelector from "./rules/hasIdSelector";
 import deeplyNestedSelector from "./rules/deeplyNestedSelector";
@@ -24,7 +24,8 @@ function analyzeCss(cssAst: AstItem[]): DiagnosticLog[] {
 			switch (declaration.property) {
 				case "outline":
 					if (outlineValueHasNoneOrZero(declaration.value)) {
-						addErrorLog(logs, {
+						addLog(logs, {
+							type: DiagnosticLevel.ERROR,
 							title: 'Outline Set to None',
 							msg: `Never remove the outline without providing a custom focus state. It breaks keyboard accessibility.`
 						});
@@ -32,7 +33,8 @@ function analyzeCss(cssAst: AstItem[]): DiagnosticLog[] {
 					break;
 				case "color":
 					if (colorValueHasLiteralName(declaration.value)) {
-						addErrorLog(logs, {
+						addLog(logs, {
+							type: DiagnosticLevel.INFO,
 							title: 'Literal Color Name',
 							msg: `Avoid literal colors like '${declaration.value}'. Use HEX, RGB, HSL, or CSS variables for consistency.`
 						});
@@ -40,7 +42,8 @@ function analyzeCss(cssAst: AstItem[]): DiagnosticLog[] {
 					break;
 				case "z-index":
 					if (hasExcessiveZIndex(declaration.value)) {
-						addErrorLog(logs, {
+						addLog(logs, {
+							type: DiagnosticLevel.WARNING,
 							title: 'Excessive z-index',
 							msg: `Avoid z-index values over 100. Use a structured z-index scale or CSS variables to prevent overlaps.`
 						});
@@ -48,7 +51,8 @@ function analyzeCss(cssAst: AstItem[]): DiagnosticLog[] {
 					break;
 				case "font-size":
 					if (isPixelBasedFont(declaration.value)) {
-						addErrorLog(logs, {
+						addLog(logs, {
+							type: DiagnosticLevel.WARNING,
 							title: 'Pixel-based Font Size',
 							msg: `Use relative units (rem, em) instead of 'px' for font sizes to respect user accessibility settings.`
 						});
